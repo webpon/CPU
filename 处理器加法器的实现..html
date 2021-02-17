@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    //策略模式
+    var cpuStrategy = (function () {
+      //内置策略
+      var strategy = {
+        //异或门XOR  只有都两个数字不相同时返回1，否则返回0
+        XOR: function (in1, in2) {
+          return in1 === in2 ? '0' : '1'
+        },
+        //与门And    只有两个数字都为1时返回1,否则返回0
+        And: function (in1, in2) {
+          return in1 === '1' && in2 === '1' ? '1' : '0'
+        },
+        //或门Or     只有有一个数字为1则返回1,否则返回0
+        Or: function (in1, in2) {
+          return in1 === '1' || in2 === '1' ? '1' : '0'
+        }
+      }
+      return {
+        //用来选择工具方法
+        control: function (type, in1, in2) {
+          return strategy[type](in1, in2)
+        },
+        //加法器的实现
+        add: function (input1, input2, carry) {
+          // 半加器的实现
+          let sum = cpuStrategy.control('XOR', input1, input2)
+          let carry1 = cpuStrategy.control('And', input1, input2)
+          //全加器的实现 sum over
+          let carry2 = cpuStrategy.control('And', sum, carry)
+          sum = cpuStrategy.control('XOR', sum, carry)
+          carry = cpuStrategy.control('Or', carry1, carry2)
+          return { carry, sum }
+        },
+        //使用加法器进行累加计算
+        useAdd: function (input1, input2) {
+          //正则验证
+          var reg = /^(0|1)+?$/;
+          if(!(reg.test(input1) && reg.test(input2))){
+            alert('请输入二进制数！')
+            return
+          }
+          let maxLength = input1.length > input2.length ? input1.length : input2.length
+          input1 = input1.split('').reverse().join('')
+          input2 = input2.split('').reverse().join('')
+          let sum = ''
+          let carry = '0'
+          let sumResult = ''
+          for (let i = 0; i < maxLength; i++) {
+            let in1 = input1.charAt(i) === '' ? '0' : input1.charAt(i)
+            let in2 = input2.charAt(i) === '' ? '0' : input2.charAt(i)
+            sum = cpuStrategy.add(in1, in2, carry).sum
+            carry = cpuStrategy.add(in1, in2, carry).carry
+            sumResult = sumResult + sum
+            if (i === maxLength - 1) {
+              carry = carry === '0' ? '' : carry
+              let result = carry + sumResult.split('').reverse().join('');
+              alert(result)
+              return result;
+            }
+          }
+        }
+      }
+    })()
+
+    let input1 = prompt('请输入第一个二进制数：')
+    let input2 = prompt('请输入第二个二进制数：')
+    
+    
+    console.log(cpuStrategy.useAdd(input1, input2));
+
+  </script>
+</body>
+
+</html>
